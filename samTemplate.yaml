@@ -3,10 +3,10 @@ Transform: "AWS::Serverless-2016-10-31"
 Description: P1
 
 Resources:
-  photobucket:
+  bucket1:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: photobucket1
+      BucketName: bucket1
 
   LF1:
     Type: 'AWS::Serverless::Function'
@@ -29,7 +29,7 @@ Resources:
           Type: S3
           Properties:
             Bucket:
-              Ref: photobucket
+              Ref: bucket1
             Events:
               - 's3:ObjectCreated:Put'
   LF2:
@@ -88,7 +88,7 @@ Resources:
       FunctionName: !Ref LF1
       Principal: s3.amazonaws.com
       SourceAccount: !Ref "AWS::AccountId"
-      SourceArn: "arn:aws:s3:::photobucket"
+      SourceArn: "arn:aws:s3:::bucket1"
 
   # OpenSearchServiceDomain:
   #   Type: AWS::OpenSearchService::Domain
