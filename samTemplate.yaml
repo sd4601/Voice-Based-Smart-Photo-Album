@@ -6,7 +6,7 @@ Resources:
   photobucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: photobucket
+      BucketName: photobucket1
 
   LF1:
     Type: 'AWS::Serverless::Function'
