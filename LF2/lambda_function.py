@@ -13,6 +13,7 @@ def push_to_lex(query):
         userId="root",           
         inputText=query
     )
+    print("test")
     print("lex-response", response)
     labels = []
     if 'slots' not in response:
