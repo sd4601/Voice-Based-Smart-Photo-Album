@@ -90,34 +90,34 @@ Resources:
       SourceAccount: !Ref "AWS::AccountId"
       SourceArn: "arn:aws:s3:::photobucket122"
 
-  # OpenSearchServiceDomain:
-  #   Type: AWS::OpenSearchService::Domain
-  #   Properties:
-  #     DomainName: 'photosearch'
-  #     EngineVersion: 'OpenSearch_1.0'
-  #     ClusterConfig:
-  #       InstanceCount: '1'
-  #       InstanceType: 't3.small.search'
-  #     EBSOptions:
-  #       EBSEnabled: true
-  #       Iops: '0'
-  #       VolumeSize: '10'
-  #       VolumeType: 'gp2'
-  #     AccessPolicies:
-  #       Version: '2012-10-17'
-  #       Statement:
-  #         -
-  #           Effect: 'Allow'
-  #           Principal:
-  #               AWS: "*"
-  #           Action: es:*
-  #           Resource: 'arn:aws:iam::920848894865:domain/photosearch'
-  #     DomainEndpointOptions:
-  #       EnforceHTTPS: true
-  #     EncryptionAtRestOptions:
-  #       Enabled: true
-  #     NodeToNodeEncryptionOptions:
-  #       Enabled: true
+  OpenSearchServiceDomain:
+    Type: AWS::OpenSearchService::Domain
+    Properties:
+      DomainName: 'photosearch'
+      EngineVersion: 'OpenSearch_1.0'
+      ClusterConfig:
+        InstanceCount: '1'
+        InstanceType: 't3.small.search'
+      EBSOptions:
+        EBSEnabled: true
+        Iops: '0'
+        VolumeSize: '10'
+        VolumeType: 'gp2'
+      AccessPolicies:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: 'Allow'
+            Principal:
+                AWS: "*"
+            Action: es:*
+            Resource: 'arn:aws:iam::920848894865:domain/photosearch'
+      DomainEndpointOptions:
+        EnforceHTTPS: true
+      EncryptionAtRestOptions:
+        Enabled: true
+      NodeToNodeEncryptionOptions:
+        Enabled: true
 
   PhotoApiDeployment:
     Type: AWS::ApiGateway::Deployment
