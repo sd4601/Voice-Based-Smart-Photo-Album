@@ -3,100 +3,69 @@ Transform: "AWS::Serverless-2016-10-31"
 Description: P1
 
 Resources:
-  photosalbumb2:
+  photobucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: myawsbucket-photos
+      BucketName: photobucket
 
-  photosalbumb1:
-    Type: AWS::S3::Bucket
+  LF1:
+    Type: 'AWS::Serverless::Function'
     Properties:
-      BucketName: myawsbucket-frontend
-
-  LambdaExecutionRoleLF1:
-    Type: "AWS::IAM::Role"
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
-      Description: "The execution role for the lambda LF1."
-      Path: "/"
-      ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-      Policies:
-        - PolicyName: "LambdaLF1Policy"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                Resource: "arn:aws:s3:::myawsbucket-photos"
-              - Effect: Allow
-                Action:
-                  - rekognition:DetectLabels
-                Resource: "*"
-              - Effect: Allow
-                Action:
-                  - es:ESHttpPut
-                  - es:ESHttpPost
-                Resource: "*"
-      RoleName: "LambdaExecutionRoleLF1"
-
-  IndexPhotosLF1:
-    Type: "AWS::Serverless::Function"
-    Properties:
-      # DependsOn: LambdaExecutionRoleLF1
-      FunctionName: index-photos
       Handler: lambda_function.lambda_handler
-      Runtime: python3.6
+      Runtime: python3.8
       CodeUri: ./LF1
-      Description: LF1
+      Description: ''
       MemorySize: 128
-      Timeout: 30
-      Role: !GetAtt LambdaExecutionRoleLF1.Arn
-      Environment:
-        Variables:
-          Region: us-east-1
-      Layers: [arn:aws:lambda:us-east-1:353077126427:layer:Requests:2]
+      Timeout: 3
+      Role: 'arn:aws:iam::920848894865:role/service-role/index-photos-role-ycr1189e'
+
+      Layers:
+        - >-
+          arn:aws:lambda:us-west-2:770693421928:layer:Klayers-p38-opensearch-py:1
+        - 'arn:aws:lambda:us-west-2:770693421928:layer:Klayers-p38-requests:2'
+        - >-
+          arn:aws:lambda:us-west-2:770693421928:layer:Klayers-p38-aws-requests-auth:2
       Events:
-        S3Event:
+        BucketEvent1:
           Type: S3
           Properties:
-            Bucket: !Ref photosalbumb2
-            Events: s3:ObjectCreated:Put
-
-  SearchPhotosLF2:
-    Type: "AWS::Serverless::Function"
+            Bucket:
+              Ref: photobucket
+            Events:
+              - 's3:ObjectCreated:Put'
+  LF2:
+    Type: 'AWS::Serverless::Function'
     Properties:
-      # DependsOn: LambdaExecutionRoleLF1
-      FunctionName: search-photos
       Handler: lambda_function.lambda_handler
-      Runtime: python3.6
+      Runtime: python3.9
       CodeUri: ./LF2
-      Description: LF2
+      Description: ''
       MemorySize: 128
-      Timeout: 30
-      Role: !GetAtt LambdaExecutionRoleLF1.Arn
-      Layers: [arn:aws:lambda:us-east-1:353077126427:layer:Requests:2]
-      Environment:
-        Variables:
-          Region: us-east-1
+      Timeout: 300
+      Role: 'arn:aws:iam::920848894865:role/service-role/search-photos-role-xlammunu'
+      Layers:
+        - >-
+          arn:aws:lambda:us-west-2:770693421928:layer:Klayers-p38-opensearch-py:1
+        - 'arn:aws:lambda:us-west-2:770693421928:layer:Klayers-p38-requests:2'
+        - >-
+          arn:aws:lambda:us-west-2:770693421928:layer:Klayers-p38-aws-requests-auth:2
+        - 'arn:aws:lambda:us-west-2:226417489901:layer:requests_aws4auth:1'
 
-  RestApiPhotoAlbum:
+      Events:
+        PhotoApi:
+          Type: Api
+          Properties:
+            Path: /search
+            Method: GET
+
+  PhotoApi:
     Type: AWS::ApiGateway::RestApi
     Properties:
       BodyS3Location:
-        Bucket: b3-photos-album
-        Key: "ApiPhotoAlbum-dev-swagger.yaml"
+        Bucket: codepipeline121
+        Key: "ai-photo-search-swagger.yaml"
       Description: "Rest api having search photos and upload photos methods."
-      Name: RestApiPhotoAlbum
+      Name: PhotoApi
       FailOnWarnings: true
       EndpointConfiguration:
         Types:
@@ -106,58 +75,57 @@ Resources:
     Type: "AWS::Lambda::Permission"
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt SearchPhotosLF2.Arn
+      FunctionName: !GetAtt LF2.Arn
       Principal: apigateway.amazonaws.com
       SourceAccount: !Ref "AWS::AccountId"
       SourceArn: !Join
         - ""
         - - "arn:aws:apigateway:us-east-1::/restapis/"
-          - !Ref RestApiPhotoAlbum
+          - !Ref PhotoApi
           - "/resources/*/methods/GET"
 
   PermissionForS3ToLF1:
     Type: "AWS::Lambda::Permission"
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref IndexPhotosLF1
+      FunctionName: !Ref LF1
       Principal: s3.amazonaws.com
       SourceAccount: !Ref "AWS::AccountId"
-      SourceArn: "arn:aws:s3:::photosalbumb2"
+      SourceArn: "arn:aws:s3:::photobucket"
 
-  ElasticSearchPhotoAlbum:
-    Type: AWS::Elasticsearch::Domain
-    Properties:
-      DomainName: photo
-      AccessPolicies:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              AWS: "*"
-            Action: es:*
-            Resource: "arn:aws:es:us-east-1:353077126427:domain/photo/*"
-            Condition:
-              IpAddress:
-                aws:SourceIp: ["74.72.185.149/24"]
-      ElasticsearchClusterConfig:
-        InstanceCount: 1
-        InstanceType: t3.small.elasticsearch
-      ElasticsearchVersion: 7.10
-      DomainEndpointOptions:
-        EnforceHTTPS: true
-      EncryptionAtRestOptions:
-        Enabled: true
-      NodeToNodeEncryptionOptions:
-        Enabled: true
-      EBSOptions:
-        EBSEnabled: true
-        VolumeSize: 10
-        VolumeType: gp2
+  # OpenSearchServiceDomain:
+  #   Type: AWS::OpenSearchService::Domain
+  #   Properties:
+  #     DomainName: 'photosearch'
+  #     EngineVersion: 'OpenSearch_1.0'
+  #     ClusterConfig:
+  #       InstanceCount: '1'
+  #       InstanceType: 't3.small.search'
+  #     EBSOptions:
+  #       EBSEnabled: true
+  #       Iops: '0'
+  #       VolumeSize: '10'
+  #       VolumeType: 'gp2'
+  #     AccessPolicies:
+  #       Version: '2012-10-17'
+  #       Statement:
+  #         -
+  #           Effect: 'Allow'
+  #           Principal:
+  #               AWS: "*"
+  #           Action: es:*
+  #           Resource: 'arn:aws:iam::920848894865:domain/photosearch'
+  #     DomainEndpointOptions:
+  #       EnforceHTTPS: true
+  #     EncryptionAtRestOptions:
+  #       Enabled: true
+  #     NodeToNodeEncryptionOptions:
+  #       Enabled: true
 
-  RestApiPhotoAlbumDeployment:
+  PhotoApiDeployment:
     Type: AWS::ApiGateway::Deployment
-    DependsOn: [RestApiPhotoAlbum]
+    DependsOn: [PhotoApi]
     Properties:
       Description: The v1 deployment of photo album api
-      RestApiId: !Ref RestApiPhotoAlbum
+      RestApiId: !Ref PhotoApi
       StageName: v1
