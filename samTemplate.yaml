@@ -20,11 +20,10 @@ Resources:
       Role: 'arn:aws:iam::920848894865:role/service-role/index-photos-role-ycr1189e'
 
       Layers:
+        - 'arn:aws:lambda:us-east-1:113088814899:layer:Klayers-python37-boto3:51'
         - >-
-          arn:aws:lambda:us-west-2:770693421928:layer:Klayers-p38-opensearch-py:1
-        - 'arn:aws:lambda:us-west-2:770693421928:layer:Klayers-p38-requests:2'
-        - >-
-          arn:aws:lambda:us-west-2:770693421928:layer:Klayers-p38-aws-requests-auth:2
+          arn:aws:lambda:us-east-1:113088814899:layer:Klayers-python37-requests:15
+        - 'arn:aws:lambda:us-east-1:920848894865:layer:dependencies:1'
       Events:
         BucketEvent1:
           Type: S3
@@ -45,11 +44,9 @@ Resources:
       Role: 'arn:aws:iam::920848894865:role/service-role/search-photos-role-xlammunu'
       Layers:
         - >-
-          arn:aws:lambda:us-west-2:770693421928:layer:Klayers-p38-opensearch-py:1
-        - 'arn:aws:lambda:us-west-2:770693421928:layer:Klayers-p38-requests:2'
-        - >-
-          arn:aws:lambda:us-west-2:770693421928:layer:Klayers-p38-aws-requests-auth:2
-        - 'arn:aws:lambda:us-west-2:226417489901:layer:requests_aws4auth:1'
+          arn:aws:lambda:us-east-1:113088814899:layer:Klayers-python37-requests:15
+        - 'arn:aws:lambda:us-east-1:113088814899:layer:Klayers-python37-boto3:51'
+        - 'arn:aws:lambda:us-east-1:920848894865:layer:dependencies:1'
 
       Events:
         PhotoApi:
