@@ -99,7 +99,7 @@ def lambda_handler(event, context):
             cl = cl.lower().strip()
             if cl not in label_names:
                 label_names.append(cl)
-
+    print("test")
     print(label_names)
     json_object = {
         'objectKey': s3Object['object']['key'],
